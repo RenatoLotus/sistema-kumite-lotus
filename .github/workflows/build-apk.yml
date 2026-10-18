@@ -30,8 +30,15 @@ jobs:
           mkdir -p www-apk
           cp www/index.html www-apk/index.html
           cp apk/apk-bridge.js www-apk/apk-bridge.js
-          sed -i 's#</body>#<script src="apk-bridge.js"></script></body>#' www-apk/index.html
-          grep -c 'apk-bridge.js' www-apk/index.html
+          python3 - <<'PY'
+          p = 'www-apk/index.html'
+          s = open(p, encoding='utf-8').read()
+          i = s.rfind('</body>')
+          assert i > 0
+          s = s[:i] + '<script src="apk-bridge.js"></script>' + s[i:]
+          open(p, 'w', encoding='utf-8').write(s)
+          PY
+          test "$(grep -o 'apk-bridge.js' www-apk/index.html | wc -l)" = "1"
       - name: Criar projeto Android
         run: npx cap add android
       - name: Icone do app
