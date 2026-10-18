@@ -1,0 +1,29 @@
+{
+  "name": "sistema-kumite-lotus",
+  "version": "1.0.0",
+  "description": "Sistema Kumitê Lótus",
+  "author": "Dojô Lótus",
+  "main": "main.js",
+  "scripts": { "start": "electron .", "dist": "electron-builder --win --publish never" },
+  "dependencies": {
+    "@capacitor/android": "^6.1.2",
+    "@capacitor/app": "^6.0.1",
+    "@capacitor/core": "^6.1.2",
+    "@capacitor/filesystem": "^6.0.1",
+    "@capacitor/share": "^6.0.2"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
+    "@capacitor/cli": "^6.1.2",
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.renatolotus.kumite",
+    "productName": "Sistema Kumitê Lótus",
+    "files": ["main.js", "www/index.html", "resources/icon.png"],
+    "directories": { "output": "dist" },
+    "win": { "icon": "resources/icon.ico", "target": ["portable"] },
+    "portable": { "artifactName": "Sistema-Kumite-Lotus.exe" }
+  }
+}

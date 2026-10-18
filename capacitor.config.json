@@ -1,0 +1,7 @@
+{
+  "appId": "com.renatolotus.kumite",
+  "appName": "Sistema Kumitê Lótus",
+  "webDir": "www-apk",
+  "android": { "allowMixedContent": false },
+  "backgroundColor": "#0a0a0a"
+}
