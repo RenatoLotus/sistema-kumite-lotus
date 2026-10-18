@@ -1,0 +1,68 @@
+name: Build APK
+
+on:
+  push:
+    branches: [ main ]
+    paths-ignore: [ '.github/workflows/build-exe.yml' ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - name: Instalar dependencias
+        env:
+          ELECTRON_SKIP_BINARY_DOWNLOAD: "1"
+        run: npm install
+      - name: Montar www-apk (app + ponte do APK)
+        run: |
+          mkdir -p www-apk
+          cp www/index.html www-apk/index.html
+          cp apk/apk-bridge.js www-apk/apk-bridge.js
+          sed -i 's#</body>#<script src="apk-bridge.js"></script></body>#' www-apk/index.html
+          grep -c 'apk-bridge.js' www-apk/index.html
+      - name: Criar projeto Android
+        run: npx cap add android
+      - name: Icone do app
+        run: npx @capacitor/assets generate --android --assetPath resources
+      - name: Assinatura fixa e versao
+        run: |
+          cat >> android/app/build.gradle <<'GRADLE'
+
+          android {
+              signingConfigs {
+                  debug {
+                      storeFile file('../../kumite-debug.keystore')
+                      storePassword 'android'
+                      keyAlias 'androiddebugkey'
+                      keyPassword 'android'
+                  }
+              }
+          }
+          GRADLE
+          sed -i "s/versionCode 1/versionCode ${{ github.run_number }}/" android/app/build.gradle
+          sed -i "s/versionName \"1.0\"/versionName \"1.0.${{ github.run_number }}\"/" android/app/build.gradle
+      - name: Sincronizar
+        run: npx cap sync android
+      - name: Compilar APK
+        working-directory: android
+        run: chmod +x gradlew && ./gradlew assembleDebug
+      - name: Renomear
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk Sistema-Kumite-Lotus.apk
+      - name: Publicar na aba Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: apk-${{ github.run_number }}
+          name: Sistema Kumitê Lótus (Android) ${{ github.run_number }}
+          files: Sistema-Kumite-Lotus.apk
